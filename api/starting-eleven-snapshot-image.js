@@ -1,10 +1,8 @@
-// /api/starting-eleven-snapshot-image.js
 import satori from "satori";
 import { Resvg } from "@resvg/resvg-js";
-import { put } from "@vercel/blob";
 
 export const config = {
-  runtime: "nodejs", // important for Resvg
+  runtime: "nodejs",
 };
 
 export default async function handler(req, res) {
@@ -25,7 +23,6 @@ export default async function handler(req, res) {
     starters.sort((a, b) => a.jerseyNum - b.jerseyNum);
     subs.sort((a, b) => (a.roster || "").localeCompare(b.roster || ""));
 
-    // Load a font for Satori (Inter from Google Fonts)
     const fontData = await fetch(
       "https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTcviYw.ttf"
     ).then(r => r.arrayBuffer());
@@ -46,148 +43,37 @@ export default async function handler(req, res) {
       }
     );
 
-    const resvg = new Resvg(svg, {
-      fitTo: { mode: "width", value: 800 },
-    });
+    const png = new Resvg(svg).render().asPng();
 
-    const png = resvg.render().asPng();
+    res.setHeader("Content-Type", "image/png");
+    res.setHeader("Cache-Control", "public, max-age=0, must-revalidate");
+    res.status(200).send(png);
 
-    const { url } = await put("snapshots/startingV1.png", png, {
-      access: "public",
-      contentType: "image/png",
-      cacheControl: "public, max-age=2592000",
-      token: process.env.BLOB_READ_WRITE_TOKEN,
-      allowOverwrite: true,
-      addRandomSuffix: false,
-    });
-
-    res.status(200).json({
-      ok: true,
-      message: "Snapshot PNG updated",
-      snapshotUrl: url,
-    });
   } catch (err) {
     console.error("Snapshot PNG generation failed:", err);
     res.status(500).json({ ok: false, error: err.toString() });
   }
 }
 
-// --- JSX SNAPSHOT LAYOUT (Satori) ---
-
 function Snapshot({ starters, subs }) {
   return (
-    <div
-      style={{
-        width: "100%",
-        height: "100%",
-        background: "#ffffff",
-        color: "#111111",
-        fontFamily: "Inter, system-ui, sans-serif",
-        padding: 32,
-        boxSizing: "border-box",
-        display: "flex",
-        flexDirection: "column",
-        gap: 24,
-      }}
-    >
-      <div>
-        <div
-          style={{
-            fontSize: 24,
-            fontWeight: 700,
-            marginBottom: 8,
-          }}
-        >
-          Starting XI
+    <div style={{ fontFamily: "Inter", padding: 32 }}>
+      <h3>Starting XI</h3>
+      {starters.map(p => (
+        <div key={p.jersey}>
+          #{p.jersey} {p.roster} {p.captain ? " (C)" : ""}
         </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-          {starters.map(p => (
-            <div
-              key={`starter-${p.jersey}`}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 8,
-                fontSize: 16,
-              }}
-            >
-              <div
-                style={{
-                  minWidth: 32,
-                  fontWeight: 700,
-                }}
-              >
-                #{p.jersey}
-              </div>
-              <div style={{ fontWeight: 500 }}>{p.roster}</div>
-              {p.captain && (
-                <div
-                  style={{
-                    marginLeft: 8,
-                    padding: "2px 6px",
-                    borderRadius: 4,
-                    background: "#0057b8",
-                    color: "#ffffff",
-                    fontSize: 10,
-                    fontWeight: 700,
-                    textTransform: "uppercase",
-                  }}
-                >
-                  C
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
+      ))}
 
-      <div>
-        <div
-          style={{
-            fontSize: 20,
-            fontWeight: 700,
-            marginBottom: 8,
-          }}
-        >
-          Subs
+      <h3 style={{ marginTop: 24 }}>Subs</h3>
+      {subs.map(p => (
+        <div key={p.jersey}>
+          #{p.jersey} {p.roster}
         </div>
-        <div
-          style={{
-            display: "flex",
-            flexWrap: "wrap",
-            gap: 10,
-            fontSize: 13,
-          }}
-        >
-          {subs.map(p => {
-            const parts = (p.roster || "").split(" ");
-            const short =
-              parts.length > 1 ? parts.slice(1).join(" ") : p.roster;
-
-            return (
-              <div
-                key={`sub-${p.jersey}`}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
-                  padding: "4px 8px",
-                  borderRadius: 4,
-                  background: "#f3f4f6",
-                }}
-              >
-                <div style={{ fontWeight: 600 }}>#{p.jersey}</div>
-                <div>{short}</div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
+      ))}
     </div>
   );
 }
-
-// --- HELPERS ---
 
 function parseCsv(csv) {
   const lines = csv.trim().split("\n");
