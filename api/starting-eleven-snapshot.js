@@ -58,15 +58,18 @@ export default async function handler(req, res) {
 </html>
     `.trim();
 
-const { url } = await put("snapshots/startingV1.html", html, {
-  access: "public",
-  contentType: "text/html; charset=utf-8",
-  cacheControl: "public, max-age=0, must-revalidate",
-token: process.env.BLOB_READ_WRITE_TOKEN,
-  allowOverwrite: true,
-  addRandomSuffix: false
-});
-
+await put(
+  "snapshots/startingV1.html",
+  new Blob([html], { type: "text/html; charset=utf-8" }),
+  {
+    access: "public",
+    contentType: "text/html; charset=utf-8",
+    cacheControl: "public, max-age=0, must-revalidate",
+    token: process.env.BLOB_READ_WRITE_TOKEN,
+    allowOverwrite: true,
+    addRandomSuffix: false
+  }
+);
 
 
     res.status(200).json({
