@@ -58,9 +58,7 @@ export default async function handler(req, res) {
 </html>
     `.trim();
 
-const file = new Blob([html], {
-  type: "text/html; charset=utf-8"
-});
+const file = Buffer.from(html, "utf8");
 
 const { url } = await put("snapshots/startingV1.html", file, {
   access: "public",
