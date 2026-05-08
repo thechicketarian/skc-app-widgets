@@ -9,7 +9,17 @@ const CSV_URL = `https://skc-app-widgets.vercel.app/api/sheet?url=${encodeURICom
 
 // ---- CACHE KEYS ----
 const CACHE_HTML_KEY = "starting-eleven-html-v1";
-const CACHE_VERSION_KEY = "starting-eleven-lastmodified-v1";
+const CACHE_HASH_KEY = "starting-eleven-hash-v1";
+
+// ---- Tiny hash function ----
+function hashString(str) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash << 5) - hash + str.charCodeAt(i);
+    hash |= 0;
+  }
+  return hash.toString();
+}
 
 // ---- CSS ----
 const style = document.createElement("style");
@@ -62,7 +72,7 @@ async function loadStartingEleven() {
 
   // 1. Load cached HTML instantly
   const cachedHtml = localStorage.getItem(CACHE_HTML_KEY);
-  const cachedVersion = localStorage.getItem(CACHE_VERSION_KEY);
+  const cachedHash = localStorage.getItem(CACHE_HASH_KEY);
 
   if (cachedHtml) {
     container.innerHTML = cachedHtml;
@@ -71,17 +81,17 @@ async function loadStartingEleven() {
   // 2. Fetch fresh CSV in background
   try {
     const res = await fetch(CSV_URL);
+    const csv = await res.text();
 
-    // Get Google Sheets' native Last-Modified header
-    const lastModified = res.headers.get("Last-Modified") || "0";
+    // Compute hash of CSV content
+    const newHash = hashString(csv);
 
-    // If version matches → stop (cached HTML already shown)
-    if (lastModified === cachedVersion) {
+    // If hash matches → stop (cached HTML already shown)
+    if (newHash === cachedHash) {
       return;
     }
 
     // ---- PROCESS DATA ----
-    const csv = await res.text();
     const players = parseCsvToJson(csv);
 
     players.forEach(p => {
@@ -148,7 +158,7 @@ async function loadStartingEleven() {
 
     // 4. Update cache
     localStorage.setItem(CACHE_HTML_KEY, html);
-    localStorage.setItem(CACHE_VERSION_KEY, lastModified);
+    localStorage.setItem(CACHE_HASH_KEY, newHash);
 
   } catch (err) {
     console.error("Failed to load starting eleven:", err);
