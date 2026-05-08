@@ -13,6 +13,7 @@ const CSV_URL = `https://skc-app-widgets.vercel.app/api/sheet?url=${encodeURICom
 
 // ---- FILE PATHS ----
   const isProd = process.env.VERCEL_ENV === "production";
+console.log("▶ ENV:", process.env.VERCEL, process.env.VERCEL_ENV);
 
 const PNG_FILE = isProd
   ? "/tmp/starting-eleven.png"
