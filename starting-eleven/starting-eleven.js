@@ -168,22 +168,29 @@ style.textContent = `
   }
 
   .starting-eleven-widget {
-    font-family: sans-serif;
+  
   }
 
-  .starters, .subs {
-    margin-bottom: 24px;
-  }
 
-  .starters h3, .subs h3 {
-    margin: 0 0 10px 0;
+  .starters h3  {
     font-weight: bold;
     font-size: 1.1rem;
   }
 
-  .player {
-    margin-bottom: 8px;
+  .subs h3 {
   }
+
+.player-info {
+display:flex;
+gap:.25rem;
+}
+
+  .subs {
+  display: flex;
+  flex-wrap: wrap;
+  grid-column-gap: 1rem;
+  }
+
 `;
 document.head.appendChild(style);
 
@@ -233,12 +240,11 @@ async function loadStartingEleven() {
 
     const renderSub = p => {
       const subName = getSubName(p.roster);
-      const captainBadge = p.captain ? `<span class="captain-badge">C</span>` : "";
       return `
         <div class="player">
           <div class="player-info">
-            <div class="player-name">${subName} ${captainBadge}</div>
             <div class="player-position">#${p.jersey}</div>
+             <div class="player-name">${p.roster}</div>
           </div>
         </div>
       `;
@@ -246,14 +252,19 @@ async function loadStartingEleven() {
 
     container.innerHTML = `
       <div class="starting-eleven-widget">
-        <div class="starters">
+              
+        <div class="startersWrappers">
           <h3>Starting XI</h3>
-          ${starters.map(renderStarter).join("")}
+         <div class="starters">
+ ${starters.map(renderStarter).join("")}
+         </div>
         </div>
 
-        <div class="subs">
-          <h3>Subs</h3>
-          ${subs.map(renderSub).join("")}
+        <div class="subsWrapper">
+         <h3>Subs</h3>
+         <div class="subs">
+ ${subs.map(renderSub).join("")}
+         </div>
         </div>
       </div>
     `;
