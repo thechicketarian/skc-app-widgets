@@ -61,11 +61,11 @@ export default async function handler(req, res) {
 </html>
     `.trim();
 
-    // 4. WRITE SNAPSHOT TO VERCEL BLOB
-    const { url } = await put("starting-eleven/snapshot.html", html, {
-      access: "public",
-      contentType: "text/html",
-    });
+const { url } = await put("starting-eleven/snapshot.html", html, {
+  access: "public",
+  contentType: "text/html",
+  token: process.env.skc_app_widgets_READ_WRITE_TOKEN,
+});
 
     // 5. RETURN SUCCESS
     res.status(200).json({
