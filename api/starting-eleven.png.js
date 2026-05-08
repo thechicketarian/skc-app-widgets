@@ -1,7 +1,9 @@
 import fs from "fs";
 
 export default function handler(req, res) {
-  const filePath = process.env.VERCEL === "1"
+  const isProd = process.env.VERCEL_ENV === "production";
+
+  const filePath = isProd
     ? "/tmp/starting-eleven.png"
     : "public/starting-eleven.png";
 
