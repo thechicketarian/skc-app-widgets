@@ -1,8 +1,9 @@
 // /api/starting-eleven-snapshot-image.js
-const satori = require("satori");
+const { default: satori } = require("satori");
 const { Resvg } = require("@resvg/resvg-js");
 const fs = require("fs");
 const path = require("path");
+
 
 const fontPath = path.join(process.cwd(), "public/fonts/MLSTifoStandard-Medium.otf");
 const fontData = fs.readFileSync(fontPath);
