@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
-import puppeteer from "puppeteer";
+import chromium from "@sparticuz/chromium";
+import puppeteer from "puppeteer-core";
 
 // ---- CSV SOURCE ----
 const RAW_CSV_URL =
@@ -11,8 +12,6 @@ const CSV_URL = `https://skc-app-widgets.vercel.app/api/sheet?url=${encodeURICom
 )}`;
 
 // ---- FILE PATHS ----
-// Local: write to /public
-// Vercel: write to /tmp
 const isProd = process.env.VERCEL === "1";
 
 const PNG_FILE = isProd
@@ -37,7 +36,6 @@ export default async function handler(req, res) {
   try {
     console.log("▶ Starting screenshot pipeline…");
 
-    // ---- Detect local vs production ----
     const host = req.headers.host || "";
     const isLocal =
       host.includes("localhost") || host.includes("127.0.0.1");
@@ -68,19 +66,18 @@ export default async function handler(req, res) {
       return res.status(200).json({ updated: false, reason: "no-change" });
     }
 
-    // ---- 5. Launch Puppeteer ----
+    // ---- 5. Launch Puppeteer (Node 24 compatible) ----
     console.log("▶ Launching Puppeteer…");
 
+    const executablePath = isLocal
+      ? undefined // local uses full Chrome
+      : await chromium.executablePath();
+
     const browser = await puppeteer.launch({
-      headless: true,
-      args: [
-        "--no-sandbox",
-        "--disable-setuid-sandbox",
-        "--disable-dev-shm-usage",
-        "--disable-gpu",
-        "--no-zygote",
-        "--single-process"
-      ]
+      executablePath,
+      args: chromium.args,
+      defaultViewport: chromium.defaultViewport,
+      headless: chromium.headless,
     });
 
     const page = await browser.newPage();
