@@ -1,223 +1,28 @@
-// import { parseCsvToJson } from "./utils/sheet.js";
+import { parseCsvToJson } from "./utils/sheet.js";
 
-// const RAW_CSV_URL =
-//   "https://docs.google.com/spreadsheets/d/e/2PACX-1vRbFkjDDJ7pKV0Hi4HFx5t5hPQFzbZ3v0XDdD8W981RQ01bbFhhvP5-Q6AmJ8Q2Qdg75SwgM4yQnFsx/pub?output=csv";
-
-// const CSV_URL = `https://skc-app-widgets.vercel.app/api/sheet?url=${encodeURIComponent(
-//   RAW_CSV_URL
-// )}`;
-
-// // ---- CACHE KEYS ----
-// const CACHE_HTML_KEY = "starting-eleven-html-v1";
-// const CACHE_HASH_KEY = "starting-eleven-hash-v1";
-
-// // ---- Tiny hash function ----
-// function hashString(str) {
-//   let hash = 0;
-//   for (let i = 0; i < str.length; i++) {
-//     hash = (hash << 5) - hash + str.charCodeAt(i);
-//     hash |= 0;
-//   }
-//   return hash.toString();
-// }
-
-// // ---- CSS ----
-// const style = document.createElement("style");
-// style.textContent = `
-//   .starting-eleven-widget { padding: 1rem; }
-
-//   .captain-badge {
-//     display: inline-block;
-//     background: #0057b8;
-//     color: white;
-//     font-size: 0.7rem;
-//     font-weight: bold;
-//     padding: 2px 5px;
-//     border-radius: 4px;
-//     margin-left: 6px;
-//   }
-
-//   .player-info {
-//     display: flex;
-//     gap: .25rem;
-//   }
-
-//   .starters, .subs {
-//     margin-bottom: 24px;
-//   }
-
-//   .starters h3, .subs h3 {
-//     margin: 0 0 10px 0;
-//     font-weight: bold;
-//     font-size: 1.1rem;
-//   }
-
-//   .player {
-//     margin-bottom: 8px;
-//   }
-
-//   .subs {
-//     display: flex;
-//     flex-wrap: wrap;
-//     grid-column-gap: 1rem;
-//     font-size: 12px;
-//   }
-// `;
-// document.head.appendChild(style);
-
-// // ---- MAIN LOADER ----
-// async function loadStartingEleven() {
-//   const container = document.getElementById("starting-eleven");
-//   if (!container) return;
-
-//   // 1. Load cached HTML instantly
-//   const cachedHtml = localStorage.getItem(CACHE_HTML_KEY);
-//   const cachedHash = localStorage.getItem(CACHE_HASH_KEY);
-
-//   if (cachedHtml) {
-//     container.innerHTML = cachedHtml;
-//   }
-
-//   // 2. Fetch fresh CSV in background
-//   try {
-//     const res = await fetch(CSV_URL);
-//     const csv = await res.text();
-
-//     // Compute hash of CSV content
-//     const newHash = hashString(csv);
-
-//     // If hash matches → stop (cached HTML already shown)
-//     if (newHash === cachedHash) {
-//       return;
-//     }
-
-//     // ---- PROCESS DATA ----
-//     const players = parseCsvToJson(csv);
-
-//     players.forEach(p => {
-//       p.jerseyNum = parseInt(p.jersey, 10) || 0;
-//     });
-
-//     const starters = players.filter(p => p.starting === true);
-//     const subs = players.filter(p => p.starting !== true);
-
-//     starters.sort((a, b) => a.jerseyNum - b.jerseyNum);
-//     subs.sort((a, b) => (a.roster || "").localeCompare(b.roster || ""));
-
-//     const getSubName = full => {
-//       if (!full) return "";
-//       const parts = full.trim().split(" ");
-//       if (parts.length === 1) return parts[0];
-//       return parts.slice(1).join(" ");
-//     };
-
-//     const renderStarter = p => {
-//       const captainBadge = p.captain ? `<span class="captain-badge">C</span>` : "";
-//       return `
-//         <div class="player">
-//           <div class="player-info">
-//             <div class="player-position">#${p.jersey}</div>
-//             <div class="player-name">${p.roster} ${captainBadge}</div>
-//           </div>
-//         </div>
-//       `;
-//     };
-
-//     const renderSub = p => {
-//       const subName = getSubName(p.roster);
-//       return `
-//         <div class="player">
-//           <div class="player-info">
-//             <div class="player-position">#${p.jersey}</div>
-//             <div class="player-name">${subName}</div>
-//           </div>
-//         </div>
-//       `;
-//     };
-
-//     const html = `
-//       <div class="starting-eleven-widget">
-//         <div class="startersWrappers">
-//           <h3>Starting XI</h3>
-//           <div class="starters">
-//             ${starters.map(renderStarter).join("")}
-//           </div>
-//         </div>
-
-//         <div class="subsWrapper">
-//           <h3>Subs</h3>
-//           <div class="subs">
-//             ${subs.map(renderSub).join("")}
-//           </div>
-//         </div>
-//       </div>
-//     `;
-
-//     // 3. Render fresh HTML
-//     container.innerHTML = html;
-
-//     // 4. Update cache
-//     localStorage.setItem(CACHE_HTML_KEY, html);
-//     localStorage.setItem(CACHE_HASH_KEY, newHash);
-
-//   } catch (err) {
-//     console.error("Failed to load starting eleven:", err);
-//   }
-// }
-
-// document.addEventListener("DOMContentLoaded", loadStartingEleven);
-
-// ------------------------------
-// CONFIG
-// ------------------------------
-var RAW_CSV_URL =
+const RAW_CSV_URL =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vRbFkjDDJ7pKV0Hi4HFx5t5hPQFzbZ3v0XDdD8W981RQ01bbFhhvP5-Q6AmJ8Q2Qdg75SwgM4yQnFsx/pub?output=csv";
 
-var CSV_URL =
-  "https://skc-app-widgets.vercel.app/api/sheet?url=" +
-  encodeURIComponent(RAW_CSV_URL);
+const CSV_URL = `https://skc-app-widgets.vercel.app/api/sheet?url=${encodeURIComponent(
+  RAW_CSV_URL
+)}`;
 
-// ------------------------------
-// CSV PARSER (vanilla replacement for import)
-// ------------------------------
-function parseCsvToJson(csv) {
-  var lines = csv.trim().split("\n");
-  var headers = lines.shift().split(",").map(function (h) {
-    return h.trim();
-  });
+// ---- CACHE KEYS ----
+const CACHE_HTML_KEY = "starting-eleven-html-v1";
+const CACHE_HASH_KEY = "starting-eleven-hash-v1";
 
-  return lines.map(function (line) {
-    var cols = line.split(",");
-    var obj = {};
-    headers.forEach(function (h, i) {
-      obj[h] = (cols[i] || "").trim();
-    });
-    return obj;
-  });
-}
-
-// ------------------------------
-// CACHE KEYS
-// ------------------------------
-var CACHE_HTML_KEY = "starting-eleven-html-v1";
-var CACHE_HASH_KEY = "starting-eleven-hash-v1";
-
-// ------------------------------
-// HASH FUNCTION
-// ------------------------------
+// ---- Tiny hash function ----
 function hashString(str) {
-  var hash = 0;
-  for (var i = 0; i < str.length; i++) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
     hash = (hash << 5) - hash + str.charCodeAt(i);
     hash |= 0;
   }
   return hash.toString();
 }
 
-// ------------------------------
-// CSS INJECTION
-// ------------------------------
-var style = document.createElement("style");
+// ---- CSS ----
+const style = document.createElement("style");
 style.textContent = `
   .starting-eleven-widget { padding: 1rem; }
 
@@ -260,128 +65,104 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
-// ------------------------------
-// MAIN LOADER
-// ------------------------------
-function loadStartingEleven() {
-  var container = document.getElementById("starting-eleven");
+// ---- MAIN LOADER ----
+async function loadStartingEleven() {
+  const container = document.getElementById("starting-eleven");
   if (!container) return;
 
   // 1. Load cached HTML instantly
-  var cachedHtml = localStorage.getItem(CACHE_HTML_KEY);
-  var cachedHash = localStorage.getItem(CACHE_HASH_KEY);
+  const cachedHtml = localStorage.getItem(CACHE_HTML_KEY);
+  const cachedHash = localStorage.getItem(CACHE_HASH_KEY);
 
   if (cachedHtml) {
     container.innerHTML = cachedHtml;
   }
 
   // 2. Fetch fresh CSV in background
-  fetch(CSV_URL)
-    .then(function (res) {
-      return res.text();
-    })
-    .then(function (csv) {
-      var newHash = hashString(csv);
+  try {
+    const res = await fetch(CSV_URL);
+    const csv = await res.text();
 
-      // If hash matches → stop (cached HTML already shown)
-      if (newHash === cachedHash) {
-        return;
-      }
+    // Compute hash of CSV content
+    const newHash = hashString(csv);
 
-      // ---- PROCESS DATA ----
-      var players = parseCsvToJson(csv);
+    // If hash matches → stop (cached HTML already shown)
+    if (newHash === cachedHash) {
+      return;
+    }
 
-      players.forEach(function (p) {
-        p.jerseyNum = parseInt(p.jersey, 10) || 0;
-        p.starting = p.starting === "true" || p.starting === true;
-        p.captain = p.captain === "true" || p.captain === true;
-      });
+    // ---- PROCESS DATA ----
+    const players = parseCsvToJson(csv);
 
-      var starters = players.filter(function (p) {
-        return p.starting;
-      });
-
-      var subs = players.filter(function (p) {
-        return !p.starting;
-      });
-
-      starters.sort(function (a, b) {
-        return a.jerseyNum - b.jerseyNum;
-      });
-
-      subs.sort(function (a, b) {
-        return (a.roster || "").localeCompare(b.roster || "");
-      });
-
-      function getSubName(full) {
-        if (!full) return "";
-        var parts = full.trim().split(" ");
-        if (parts.length === 1) return parts[0];
-        return parts.slice(1).join(" ");
-      }
-
-      function renderStarter(p) {
-        var captainBadge = p.captain
-          ? '<span class="captain-badge">C</span>'
-          : "";
-        return (
-          '<div class="player">' +
-          '<div class="player-info">' +
-          '<div class="player-position">#' +
-          p.jersey +
-          "</div>" +
-          '<div class="player-name">' +
-          p.roster +
-          " " +
-          captainBadge +
-          "</div>" +
-          "</div>" +
-          "</div>"
-        );
-      }
-
-      function renderSub(p) {
-        var subName = getSubName(p.roster);
-        return (
-          '<div class="player">' +
-          '<div class="player-info">' +
-          '<div class="player-position">#' +
-          p.jersey +
-          "</div>" +
-          '<div class="player-name">' +
-          subName +
-          "</div>" +
-          "</div>" +
-          "</div>"
-        );
-      }
-
-      var html =
-        '<div class="starting-eleven-widget">' +
-        '<div class="startersWrappers">' +
-        "<h3>Starting XI</h3>" +
-        '<div class="starters">' +
-        starters.map(renderStarter).join("") +
-        "</div>" +
-        "</div>" +
-        '<div class="subsWrapper">' +
-        "<h3>Subs</h3>" +
-        '<div class="subs">' +
-        subs.map(renderSub).join("") +
-        "</div>" +
-        "</div>" +
-        "</div>";
-
-      // 3. Render fresh HTML
-      container.innerHTML = html;
-
-      // 4. Update cache
-      localStorage.setItem(CACHE_HTML_KEY, html);
-      localStorage.setItem(CACHE_HASH_KEY, newHash);
-    })
-    .catch(function (err) {
-      console.error("Failed to load starting eleven:", err);
+    players.forEach(p => {
+      p.jerseyNum = parseInt(p.jersey, 10) || 0;
     });
+
+    const starters = players.filter(p => p.starting === true);
+    const subs = players.filter(p => p.starting !== true);
+
+    starters.sort((a, b) => a.jerseyNum - b.jerseyNum);
+    subs.sort((a, b) => (a.roster || "").localeCompare(b.roster || ""));
+
+    const getSubName = full => {
+      if (!full) return "";
+      const parts = full.trim().split(" ");
+      if (parts.length === 1) return parts[0];
+      return parts.slice(1).join(" ");
+    };
+
+    const renderStarter = p => {
+      const captainBadge = p.captain ? `<span class="captain-badge">C</span>` : "";
+      return `
+        <div class="player">
+          <div class="player-info">
+            <div class="player-position">#${p.jersey}</div>
+            <div class="player-name">${p.roster} ${captainBadge}</div>
+          </div>
+        </div>
+      `;
+    };
+
+    const renderSub = p => {
+      const subName = getSubName(p.roster);
+      return `
+        <div class="player">
+          <div class="player-info">
+            <div class="player-position">#${p.jersey}</div>
+            <div class="player-name">${subName}</div>
+          </div>
+        </div>
+      `;
+    };
+
+    const html = `
+      <div class="starting-eleven-widget">
+        <div class="startersWrappers">
+          <h3>Starting XI</h3>
+          <div class="starters">
+            ${starters.map(renderStarter).join("")}
+          </div>
+        </div>
+
+        <div class="subsWrapper">
+          <h3>Subs</h3>
+          <div class="subs">
+            ${subs.map(renderSub).join("")}
+          </div>
+        </div>
+      </div>
+    `;
+
+    // 3. Render fresh HTML
+    container.innerHTML = html;
+
+    // 4. Update cache
+    localStorage.setItem(CACHE_HTML_KEY, html);
+    localStorage.setItem(CACHE_HASH_KEY, newHash);
+
+  } catch (err) {
+    console.error("Failed to load starting eleven:", err);
+  }
 }
 
 document.addEventListener("DOMContentLoaded", loadStartingEleven);
