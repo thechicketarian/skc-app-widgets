@@ -58,7 +58,7 @@ export default async function handler(req, res) {
 </html>
     `.trim();
 
-const { url } = await put("starting-eleven/startingV1.html", html, {
+const { url } = await put("snapshots/startingV1.html", html, {
   access: "public",
   contentType: "text/html; charset=utf-8",
   cacheControl: "public, max-age=0, must-revalidate",
@@ -66,6 +66,7 @@ const { url } = await put("starting-eleven/startingV1.html", html, {
   allowOverwrite: true,
   addRandomSuffix: false
 });
+
 
 
     res.status(200).json({
