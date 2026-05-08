@@ -58,11 +58,11 @@ export default async function handler(req, res) {
 </html>
     `.trim();
 
-const blob = new Blob([html], {
+const file = new Blob([html], {
   type: "text/html; charset=utf-8"
 });
 
-const { url } = await put("snapshots/startingV1.html", blob, {
+const { url } = await put("snapshots/startingV1.html", file, {
   access: "public",
   contentType: "text/html; charset=utf-8",
   cacheControl: "public, max-age=0, must-revalidate",
