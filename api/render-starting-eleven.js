@@ -11,8 +11,17 @@ const CSV_URL = `https://skc-app-widgets.vercel.app/api/sheet?url=${encodeURICom
 )}`;
 
 // ---- FILE PATHS ----
-const HASH_FILE = path.join(process.cwd(), "public", "starting-eleven.hash");
-const PNG_FILE = path.join(process.cwd(), "public", "starting-eleven.png");
+// Local: write to /public
+// Vercel: write to /tmp
+const isProd = process.env.VERCEL === "1";
+
+const PNG_FILE = isProd
+  ? "/tmp/starting-eleven.png"
+  : path.join(process.cwd(), "public", "starting-eleven.png");
+
+const HASH_FILE = isProd
+  ? "/tmp/starting-eleven.hash"
+  : path.join(process.cwd(), "public", "starting-eleven.hash");
 
 // ---- Tiny hash function ----
 function hashString(str) {
@@ -27,6 +36,18 @@ function hashString(str) {
 export default async function handler(req, res) {
   try {
     console.log("▶ Starting screenshot pipeline…");
+
+    // ---- Detect local vs production ----
+    const host = req.headers.host || "";
+    const isLocal =
+      host.includes("localhost") || host.includes("127.0.0.1");
+
+    const EMBED_URL = isLocal
+      ? "http://localhost:3000/starting-eleven/embed"
+      : "https://skc-app-widgets.vercel.app/starting-eleven/embed";
+
+    console.log("▶ Environment:", isLocal ? "LOCAL" : "PRODUCTION");
+    console.log("▶ Using embed URL:", EMBED_URL);
 
     // ---- 1. Fetch CSV ----
     const csvRes = await fetch(CSV_URL);
@@ -47,7 +68,7 @@ export default async function handler(req, res) {
       return res.status(200).json({ updated: false, reason: "no-change" });
     }
 
-    // ---- 5. Launch Puppeteer (19.11.1 compatible) ----
+    // ---- 5. Launch Puppeteer ----
     console.log("▶ Launching Puppeteer…");
 
     const browser = await puppeteer.launch({
@@ -67,10 +88,7 @@ export default async function handler(req, res) {
     // ---- 6. Load embed page ----
     console.log("▶ Loading embed page…");
 
-    await page.goto(
-      "https://skc-app-widgets.vercel.app/starting-eleven/embed",
-      { waitUntil: "networkidle0" }
-    );
+    await page.goto(EMBED_URL, { waitUntil: "networkidle0" });
 
     // ---- 7. Wait for widget to fully render ----
     console.log("▶ Waiting for widget to render…");
