@@ -63,6 +63,8 @@ function Snapshot({ starters, subs }) {
         fontSize: 20,
         background: "#000000",
         color: "#ffffff",
+        display: "flex",
+        flexDirection: "column",
       },
       children: [
         {
