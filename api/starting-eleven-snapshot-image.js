@@ -25,10 +25,6 @@ module.exports = async function handler(req, res) {
     starters.sort((a, b) => a.jerseyNum - b.jerseyNum);
     subs.sort((a, b) => (a.roster || "").localeCompare(b.roster || ""));
 
-    // Load local font
-    const fontPath = path.join(process.cwd(), "public/fonts/Inter-Regular.ttf");
-    const fontData = fs.readFileSync(fontPath);
-
     const svg = await satori(
       Snapshot({ starters, subs }),
       {
