@@ -1,11 +1,10 @@
-import satori from "satori";
-import { Resvg } from "@resvg/resvg-js";
+// /api/starting-eleven-snapshot-image.js
+const satori = require("satori");
+const { Resvg } = require("@resvg/resvg-js");
+const fs = require("fs");
+const path = require("path");
 
-export const config = {
-  runtime: "nodejs",
-};
-
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   try {
     const RAW_CSV_URL =
       "https://docs.google.com/spreadsheets/d/e/2PACX-1vRbFkjDDJ7pKV0Hi4HFx5t5hPQFzbZ3v0XDdD8W981RQ01bbFhhvP5-Q6AmJ8Q2Qdg75SwgM4yQnFsx/pub?output=csv";
@@ -23,9 +22,9 @@ export default async function handler(req, res) {
     starters.sort((a, b) => a.jerseyNum - b.jerseyNum);
     subs.sort((a, b) => (a.roster || "").localeCompare(b.roster || ""));
 
-    const fontData = await fetch(
-      "https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTcviYw.ttf"
-    ).then(r => r.arrayBuffer());
+    // Load local font
+    const fontPath = path.join(process.cwd(), "public/fonts/Inter-Regular.ttf");
+    const fontData = fs.readFileSync(fontPath);
 
     const svg = await satori(
       Snapshot({ starters, subs }),
@@ -53,26 +52,30 @@ export default async function handler(req, res) {
     console.error("Snapshot PNG generation failed:", err);
     res.status(500).json({ ok: false, error: err.toString() });
   }
-}
+};
 
+// JSX-like function for Satori
 function Snapshot({ starters, subs }) {
-  return (
-    <div style={{ fontFamily: "Inter", padding: 32 }}>
-      <h3>Starting XI</h3>
-      {starters.map(p => (
-        <div key={p.jersey}>
-          #{p.jersey} {p.roster} {p.captain ? " (C)" : ""}
-        </div>
-      ))}
-
-      <h3 style={{ marginTop: 24 }}>Subs</h3>
-      {subs.map(p => (
-        <div key={p.jersey}>
-          #{p.jersey} {p.roster}
-        </div>
-      ))}
-    </div>
-  );
+  return {
+    type: "div",
+    props: {
+      style: { fontFamily: "Inter", padding: 32 },
+      children: [
+        { type: "h3", props: { children: "Starting XI" } },
+        ...starters.map(p => ({
+          type: "div",
+          props: {
+            children: `#${p.jersey} ${p.roster}${p.captain ? " (C)" : ""}`
+          }
+        })),
+        { type: "h3", props: { style: { marginTop: 24 }, children: "Subs" } },
+        ...subs.map(p => ({
+          type: "div",
+          props: { children: `#${p.jersey} ${p.roster}` }
+        })),
+      ]
+    }
+  };
 }
 
 function parseCsv(csv) {
