@@ -1,6 +1,8 @@
 {
   "dependencies": {
+    "@resvg/resvg-js": "^2.6.2",
     "@vercel/blob": "^2.3.3",
-    "puppeteer": "^19.11.1"
+    "puppeteer": "^19.11.1",
+    "satori": "^0.26.0"
   }
 }
