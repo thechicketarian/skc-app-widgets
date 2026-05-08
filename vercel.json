@@ -5,11 +5,5 @@
       "memory": 1024,
       "maxDuration": 30
     }
-  },
-  "crons": [
-    {
-      "path": "/api/render-starting-eleven",
-      "schedule": "*/5 * * * *"
-    }
-  ]
+  }
 }
