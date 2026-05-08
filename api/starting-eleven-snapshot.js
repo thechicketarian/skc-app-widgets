@@ -2,7 +2,6 @@ import { put } from "@vercel/blob";
 
 export default async function handler(req, res) {
   try {
-    // 1. CSV SOURCE
     const RAW_CSV_URL =
       "https://docs.google.com/spreadsheets/d/e/2PACX-1vRbFkjDDJ7pKV0Hi4HFx5t5hPQFzbZ3v0XDdD8W981RQ01bbFhhvP5-Q6AmJ8Q2Qdg75SwgM4yQnFsx/pub?output=csv";
 
@@ -13,14 +12,12 @@ export default async function handler(req, res) {
     const csv = await fetch(CSV_URL).then(r => r.text());
     const players = parseCsv(csv);
 
-    // 2. SORT + ORGANIZE
     const starters = players.filter(p => p.starting);
     const subs = players.filter(p => !p.starting);
 
     starters.sort((a, b) => a.jerseyNum - b.jerseyNum);
     subs.sort((a, b) => (a.roster || "").localeCompare(b.roster || ""));
 
-    // 3. BUILD STATIC HTML SNAPSHOT
     const html = `
 <!DOCTYPE html>
 <html>
@@ -61,15 +58,14 @@ export default async function handler(req, res) {
 </html>
     `.trim();
 
-const { url } = await put("starting-eleven/snapshot.html", html, {
-  access: "public",
-  contentType: "text/html; charset=utf-8",
-  cacheControl: "public, max-age=0, must-revalidate",
-  token: process.env.skc_app_widgets_READ_WRITE_TOKEN,
-});
+    const { url } = await put("starting-eleven/snapshot.html", html, {
+      access: "public",
+      contentType: "text/html; charset=utf-8",
+      cacheControl: "public, max-age=0, must-revalidate",
+      token: process.env.skc_app_widgets_READ_WRITE_TOKEN,
+      allowOverwrite: true
+    });
 
-
-    // 5. RETURN SUCCESS
     res.status(200).json({
       ok: true,
       message: "Snapshot updated",
@@ -92,8 +88,10 @@ function parseCsv(csv) {
     headers.forEach((h, i) => (obj[h] = (cols[i] || "").trim()));
 
     obj.jerseyNum = parseInt(obj.jersey, 10) || 0;
-    obj.starting = obj.starting === "true";
-    obj.captain = obj.captain === "true";
+
+    // FIXED BOOLEAN PARSING
+    obj.starting = obj.starting === true || obj.starting === "true";
+    obj.captain = obj.captain === true || obj.captain === "true";
 
     return obj;
   });
