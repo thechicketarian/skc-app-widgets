@@ -4,6 +4,9 @@ const { Resvg } = require("@resvg/resvg-js");
 const fs = require("fs");
 const path = require("path");
 
+const fontPath = path.join(process.cwd(), "public/fonts/MLSTifoStandard-Medium.otf");
+const fontData = fs.readFileSync(fontPath);
+
 module.exports = async function handler(req, res) {
   try {
     const RAW_CSV_URL =
@@ -33,9 +36,9 @@ module.exports = async function handler(req, res) {
         height: 600,
         fonts: [
           {
-            name: "Inter",
+            name: "MLS Tifo",
             data: fontData,
-            weight: 400,
+            weight: 700,
             style: "normal",
           },
         ],
@@ -59,7 +62,7 @@ function Snapshot({ starters, subs }) {
   return {
     type: "div",
     props: {
-      style: { fontFamily: "Inter", padding: 32 },
+      style: { fontFamily: "MLS Tifo", padding: 32 },
       children: [
         { type: "h3", props: { children: "Starting XI" } },
         ...starters.map(p => ({
