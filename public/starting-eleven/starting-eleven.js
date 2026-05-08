@@ -1,4 +1,4 @@
-import { parseCsvToJson } from "./utils/sheet";
+import { parseCsvToJson } from "./utils/sheet.js";
 
 const RAW_CSV_URL =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vRbFkjDDJ7pKV0Hi4HFx5t5hPQFzbZ3v0XDdD8W981RQ01bbFhhvP5-Q6AmJ8Q2Qdg75SwgM4yQnFsx/pub?output=csv";
