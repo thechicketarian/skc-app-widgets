@@ -52,7 +52,6 @@ module.exports = async function handler(req, res) {
   }
 };
 
-// Satori-compatible tree (no h1/h2/h3, only div/span/etc)
 function Snapshot({ starters, subs }) {
   return {
     type: "div",
@@ -61,32 +60,46 @@ function Snapshot({ starters, subs }) {
         fontFamily: "MLS Tifo",
         padding: 32,
         fontSize: 20,
-        background: "#000000",
-        color: "#ffffff",
+        background: "transparent",
+        color: "#0c2340",
         display: "flex",
         flexDirection: "column",
+        width: "100%",
+        height: "100%"
       },
       children: [
+        // STARTERS HEADER
         {
           type: "div",
           props: {
             style: {
               fontSize: 32,
               fontWeight: 500,
-              marginBottom: 16,
+              marginBottom: 16
             },
-            children: "Starting XI",
-          },
+            children: "Starting XI"
+          }
         },
-        ...starters.map((p) => ({
+
+        // STARTERS LIST (vertical)
+        {
           type: "div",
           props: {
-            style: { marginBottom: 4 },
-            children: `#${p.jersey} ${p.roster}${
-              p.captain ? " (C)" : ""
-            }`,
-          },
-        })),
+            style: {
+              display: "flex",
+              flexDirection: "column",
+              gap: 4
+            },
+            children: starters.map((p) => ({
+              type: "div",
+              props: {
+                children: `#${p.jersey} ${p.roster}${p.captain ? " (C)" : ""}`
+              }
+            }))
+          }
+        },
+
+        // SUBS HEADER
         {
           type: "div",
           props: {
@@ -94,22 +107,37 @@ function Snapshot({ starters, subs }) {
               fontSize: 32,
               fontWeight: 500,
               marginTop: 32,
-              marginBottom: 8,
+              marginBottom: 8
             },
-            children: "Subs",
-          },
+            children: "Subs"
+          }
         },
-        ...subs.map((p) => ({
+
+        // SUBS WRAPPING GRID
+        {
           type: "div",
           props: {
-            style: { marginBottom: 4 },
-            children: `#${p.jersey} ${p.roster}`,
-          },
-        })),
-      ],
-    },
+            style: {
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 8
+            },
+            children: subs.map((p) => ({
+              type: "div",
+              props: {
+                style: {
+                  paddingRight: 12
+                },
+                children: `#${p.jersey} ${p.roster}`
+              }
+            }))
+          }
+        }
+      ]
+    }
   };
 }
+
 
 function parseCsv(csv) {
   const lines = csv.trim().split("\n");
@@ -121,8 +149,11 @@ function parseCsv(csv) {
     headers.forEach((h, i) => (obj[h] = (cols[i] || "").trim()));
 
     obj.jerseyNum = parseInt(obj.jersey, 10) || 0;
-    obj.starting = obj.starting === true || obj.starting === "true";
-    obj.captain = obj.captain === true || obj.captain === "true";
+
+    const normalize = (v) => v.toString().trim().toLowerCase();
+
+    obj.starting = normalize(obj.starting) === "true";
+    obj.captain  = normalize(obj.captain) === "true";
 
     return obj;
   });
