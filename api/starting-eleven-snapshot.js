@@ -1,8 +1,8 @@
 import { put } from "@vercel/blob";
+import { parseCsvToJson } from "./utils/sheet.js";
 
 export default async function handler(req, res) {
   try {
-    // 1. CSV SOURCE
     const RAW_CSV_URL =
       "https://docs.google.com/spreadsheets/d/e/2PACX-1vRbFkjDDJ7pKV0Hi4HFx5t5hPQFzbZ3v0XDdD8W981RQ01bbFhhvP5-Q6AmJ8Q2Qdg75SwgM4yQnFsx/pub?output=csv";
 
@@ -11,16 +11,54 @@ export default async function handler(req, res) {
       encodeURIComponent(RAW_CSV_URL);
 
     const csv = await fetch(CSV_URL).then(r => r.text());
-    const players = parseCsv(csv);
+    const players = parseCsvToJson(csv);
 
-    // 2. SORT + ORGANIZE
-    const starters = players.filter(p => p.starting);
-    const subs = players.filter(p => !p.starting);
+    // Normalize fields exactly like the client
+    players.forEach(p => {
+      p.jerseyNum = parseInt(p.jersey, 10) || 0;
+      p.starting = p.starting === true || p.starting === "true";
+      p.captain = p.captain === true || p.captain === "true";
+    });
+
+    const starters = players.filter(p => p.starting === true);
+    const subs = players.filter(p => p.starting !== true);
 
     starters.sort((a, b) => a.jerseyNum - b.jerseyNum);
     subs.sort((a, b) => (a.roster || "").localeCompare(b.roster || ""));
 
-    // 3. BUILD STATIC HTML SNAPSHOT
+    const getSubName = full => {
+      if (!full) return "";
+      const parts = full.trim().split(" ");
+      if (parts.length === 1) return parts[0];
+      return parts.slice(1).join(" ");
+    };
+
+    const renderStarter = p => {
+      const captainBadge = p.captain
+        ? `<span class="captain-badge">C</span>`
+        : "";
+      return `
+        <div class="player">
+          <div class="player-info">
+            <div class="player-position">#${p.jersey}</div>
+            <div class="player-name">${p.roster} ${captainBadge}</div>
+          </div>
+        </div>
+      `;
+    };
+
+    const renderSub = p => {
+      const subName = getSubName(p.roster);
+      return `
+        <div class="player">
+          <div class="player-info">
+            <div class="player-position">#${p.jersey}</div>
+            <div class="player-name">${subName}</div>
+          </div>
+        </div>
+      `;
+    };
+
     const html = `
 <!DOCTYPE html>
 <html>
@@ -30,8 +68,6 @@ export default async function handler(req, res) {
 <style>
   body { margin: 0; padding: 0; font-family: sans-serif; }
   .starting-eleven-widget { padding: 1rem; }
-  .player { margin-bottom: 8px; }
-  .player-info { display: flex; gap: .25rem; }
   .captain-badge {
     display: inline-block;
     background: #0057b8;
@@ -42,6 +78,8 @@ export default async function handler(req, res) {
     border-radius: 4px;
     margin-left: 6px;
   }
+  .player-info { display: flex; gap: .25rem; }
+  .player { margin-bottom: 8px; }
   .subs { display: flex; flex-wrap: wrap; gap: 1rem; font-size: 12px; }
 </style>
 </head>
@@ -61,13 +99,13 @@ export default async function handler(req, res) {
 </html>
     `.trim();
 
-const { url } = await put("starting-eleven/snapshot.html", html, {
-  access: "public",
-  contentType: "text/html",
-  token: process.env.skc_app_widgets_READ_WRITE_TOKEN,
-});
+    const { url } = await put("starting-eleven/snapshot.html", html, {
+      access: "public",
+      contentType: "text/html; charset=utf-8",
+      cacheControl: "public, max-age=0, must-revalidate",
+      token: process.env.skc_app_widgets_READ_WRITE_TOKEN,
+    });
 
-    // 5. RETURN SUCCESS
     res.status(200).json({
       ok: true,
       message: "Snapshot updated",
@@ -77,47 +115,4 @@ const { url } = await put("starting-eleven/snapshot.html", html, {
     console.error("Snapshot generation failed:", err);
     res.status(500).json({ ok: false, error: err.toString() });
   }
-}
-
-// HELPERS
-function parseCsv(csv) {
-  const lines = csv.trim().split("\n");
-  const headers = lines.shift().split(",").map(h => h.trim());
-
-  return lines.map(line => {
-    const cols = line.split(",");
-    const obj = {};
-    headers.forEach((h, i) => (obj[h] = (cols[i] || "").trim()));
-
-    obj.jerseyNum = parseInt(obj.jersey, 10) || 0;
-    obj.starting = obj.starting === "true";
-    obj.captain = obj.captain === "true";
-
-    return obj;
-  });
-}
-
-function renderStarter(p) {
-  return `
-    <div class="player">
-      <div class="player-info">
-        <div>#${p.jersey}</div>
-        <div>${p.roster}${p.captain ? `<span class="captain-badge">C</span>` : ""}</div>
-      </div>
-    </div>
-  `;
-}
-
-function renderSub(p) {
-  const parts = p.roster.split(" ");
-  const short = parts.length > 1 ? parts.slice(1).join(" ") : p.roster;
-
-  return `
-    <div class="player">
-      <div class="player-info">
-        <div>#${p.jersey}</div>
-        <div>${short}</div>
-      </div>
-    </div>
-  `;
 }
