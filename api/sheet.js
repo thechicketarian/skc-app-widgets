@@ -1,6 +1,3 @@
-// /api/sheet.js
-console.log("▶ Running sheet.js from:", __filename);
-
 export default async function handler(req, res) {
   const url = req.query.url;
 
