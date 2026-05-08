@@ -9,6 +9,7 @@
       margin: 0;
       padding: 0;
       font-family: sans-serif;
+      overflow: hidden; /* prevents internal scroll */
     }
   </style>
 </head>
@@ -16,7 +17,21 @@
 <body>
   <div id="starting-eleven"></div>
 
-  <!-- Load your widget script normally -->
+  <!-- Load your widget script -->
   <script type="module" src="/starting-eleven/starting-eleven.js"></script>
+
+  <!-- Auto-resize messaging -->
+  <script>
+    function sendHeight() {
+      const height = document.body.scrollHeight;
+      parent.postMessage({ type: "starting-eleven-height", height }, "*");
+    }
+
+    window.onload = sendHeight;
+    window.onresize = sendHeight;
+
+    // Also send height after fonts load
+    document.fonts?.ready?.then(sendHeight);
+  </script>
 </body>
 </html>
