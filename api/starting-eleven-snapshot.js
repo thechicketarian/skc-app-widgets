@@ -60,7 +60,7 @@ export default async function handler(req, res) {
 
 const file = Buffer.from(html, "utf8");
 
-const { url } = await put("snapshots/startingV1.html", file, {
+const { url } = await put("snapshots/startingNext.html", file, {
   access: "public",
   contentType: "text/html; charset=utf-8",
   cacheControl: "public, max-age=0, must-revalidate",
