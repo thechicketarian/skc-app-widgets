@@ -47,11 +47,11 @@ export default async function handler(req, res) {
       return res.status(200).json({ updated: false, reason: "no-change" });
     }
 
-    // ---- 5. Launch Puppeteer ----
+    // ---- 5. Launch Puppeteer (19.11.1 compatible) ----
     console.log("▶ Launching Puppeteer…");
 
     const browser = await puppeteer.launch({
-      headless: "new",
+      headless: true,
       args: [
         "--no-sandbox",
         "--disable-setuid-sandbox",
