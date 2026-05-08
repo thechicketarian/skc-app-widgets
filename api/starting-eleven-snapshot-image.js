@@ -4,8 +4,10 @@ const { Resvg } = require("@resvg/resvg-js");
 const fs = require("fs");
 const path = require("path");
 
-
-const fontPath = path.join(process.cwd(), "public/fonts/MLSTifoStandard-Medium.otf");
+const fontPath = path.join(
+  process.cwd(),
+  "public/fonts/MLSTifoStandard-Medium.otf"
+);
 const fontData = fs.readFileSync(fontPath);
 
 module.exports = async function handler(req, res) {
@@ -17,72 +19,101 @@ module.exports = async function handler(req, res) {
       "https://skc-app-widgets.vercel.app/api/sheet?url=" +
       encodeURIComponent(RAW_CSV_URL);
 
-    const csv = await fetch(CSV_URL).then(r => r.text());
+    const csv = await fetch(CSV_URL).then((r) => r.text());
     const players = parseCsv(csv);
 
-    const starters = players.filter(p => p.starting);
-    const subs = players.filter(p => !p.starting);
+    const starters = players.filter((p) => p.starting);
+    const subs = players.filter((p) => !p.starting);
 
     starters.sort((a, b) => a.jerseyNum - b.jerseyNum);
     subs.sort((a, b) => (a.roster || "").localeCompare(b.roster || ""));
 
-    const svg = await satori(
-      Snapshot({ starters, subs }),
-      {
-        width: 800,
-        height: 600,
-        fonts: [
-          {
-            name: "MLS Tifo",
-            data: fontData,
-            weight: 700,
-            style: "normal",
-          },
-        ],
-      }
-    );
+    const svg = await satori(Snapshot({ starters, subs }), {
+      width: 800,
+      height: 600,
+      fonts: [
+        {
+          name: "MLS Tifo",
+          data: fontData,
+          weight: 500, // Medium
+          style: "normal",
+        },
+      ],
+    });
 
     const png = new Resvg(svg).render().asPng();
 
     res.setHeader("Content-Type", "image/png");
     res.setHeader("Cache-Control", "public, max-age=0, must-revalidate");
     res.status(200).send(png);
-
   } catch (err) {
     console.error("Snapshot PNG generation failed:", err);
     res.status(500).json({ ok: false, error: err.toString() });
   }
 };
 
-// JSX-like function for Satori
+// Satori-compatible tree (no h1/h2/h3, only div/span/etc)
 function Snapshot({ starters, subs }) {
   return {
     type: "div",
     props: {
-      style: { fontFamily: "MLS Tifo", padding: 32 },
+      style: {
+        fontFamily: "MLS Tifo",
+        padding: 32,
+        fontSize: 20,
+        background: "#000000",
+        color: "#ffffff",
+      },
       children: [
-        { type: "h3", props: { children: "Starting XI" } },
-        ...starters.map(p => ({
+        {
           type: "div",
           props: {
-            children: `#${p.jersey} ${p.roster}${p.captain ? " (C)" : ""}`
-          }
-        })),
-        { type: "h3", props: { style: { marginTop: 24 }, children: "Subs" } },
-        ...subs.map(p => ({
+            style: {
+              fontSize: 32,
+              fontWeight: 500,
+              marginBottom: 16,
+            },
+            children: "Starting XI",
+          },
+        },
+        ...starters.map((p) => ({
           type: "div",
-          props: { children: `#${p.jersey} ${p.roster}` }
+          props: {
+            style: { marginBottom: 4 },
+            children: `#${p.jersey} ${p.roster}${
+              p.captain ? " (C)" : ""
+            }`,
+          },
         })),
-      ]
-    }
+        {
+          type: "div",
+          props: {
+            style: {
+              fontSize: 32,
+              fontWeight: 500,
+              marginTop: 32,
+              marginBottom: 8,
+            },
+            children: "Subs",
+          },
+        },
+        ...subs.map((p) => ({
+          type: "div",
+          props: {
+            style: { marginBottom: 4 },
+            children: `#${p.jersey} ${p.roster}`,
+          },
+        })),
+      ],
+    },
   };
 }
 
 function parseCsv(csv) {
   const lines = csv.trim().split("\n");
-  const headers = lines.shift().split(",").map(h => h.trim());
+  const headers = lines.shift().split(",").map((h) => h.trim());
 
-  return lines.map(line => {
+  return lines.map((line) => {
     const cols = line.split(",");
     const obj = {};
     headers.forEach((h, i) => (obj[h] = (cols[i] || "").trim()));
